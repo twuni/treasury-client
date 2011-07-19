@@ -22,6 +22,8 @@ public class TreasuryClientTest {
 		Token original = treasury.create( 12345 );
 		Set<Token> tokens = treasury.split( original, 10000 );
 
+		Assert.assertEquals( 2, tokens.size() );
+
 		Iterator<Token> it = tokens.iterator();
 		Token merged = treasury.merge( it.next(), it.next() );
 
