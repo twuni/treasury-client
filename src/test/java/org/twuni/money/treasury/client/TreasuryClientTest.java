@@ -17,17 +17,27 @@ public class TreasuryClientTest {
 	public void doSomething() {
 
 		DefaultHttpClient client = new DefaultHttpClient();
-		Treasury treasury = new TreasuryClient( client, "home.twuni.org" );
+		Treasury treasury = new TreasuryClient( client, "localhost" );
 
 		Token original = treasury.create( 12345 );
 		Set<Token> tokens = treasury.split( original, 10000 );
 
 		Assert.assertEquals( 2, tokens.size() );
 
-		Iterator<Token> it = tokens.iterator();
-		Token merged = treasury.merge( it.next(), it.next() );
+		Token merged = merge( treasury, tokens );
 
 		Assert.assertEquals( original.getValue(), merged.getValue() );
+
+	}
+
+	private Token merge( Treasury treasury, Set<Token> tokens ) {
+
+		Iterator<Token> it = tokens.iterator();
+
+		Token a = it.next();
+		Token b = it.next();
+
+		return treasury.merge( a, b );
 
 	}
 
