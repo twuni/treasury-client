@@ -79,7 +79,7 @@ public class TreasuryClient implements Treasury {
 
 		try {
 			post.setEntity( new StringEntity( encrypt( a, encrypt( b, a.getActionKey().getPublicKey().serialize() ) ) ) );
-			ShareableToken token = execute( post, new TypeToken<SimpleToken>() {
+			ShareableToken token = execute( post, new TypeToken<ShareableToken>() {
 			}.getType(), a, b );
 			return adapt( token );
 		} catch( IOException exception ) {
