@@ -14,7 +14,7 @@ public class TreasuryClientTest {
 
 	@Ignore
 	@Test
-	public void doSomething() {
+	public void liveIntegrationTest() {
 
 		DefaultHttpClient client = new DefaultHttpClient();
 		Treasury treasury = new TreasuryClient( client, "localhost" );
