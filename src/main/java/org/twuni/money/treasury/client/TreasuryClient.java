@@ -1,15 +1,12 @@
 package org.twuni.money.treasury.client;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Type;
-import java.net.URLEncoder;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
@@ -29,7 +26,7 @@ import com.google.gson.reflect.TypeToken;
 public class TreasuryClient implements Treasury {
 
 	private static final String CREATE_URI = "http://%s:8080/treasury/create";
-	private static final String VALUE_URI = "http://%s:8080/treasury/value?id=%s";
+	private static final String VALUE_URI = "http://%s:8080/treasury/value";
 	private static final String MERGE_URI = "http://%s:8080/treasury/merge";
 	private static final String SPLIT_URI = "http://%s:8080/treasury/split";
 
@@ -91,10 +88,11 @@ public class TreasuryClient implements Treasury {
 	@Override
 	public int getValue( Token token ) {
 
-		HttpGet get = new HttpGet( String.format( VALUE_URI, domain, encodeUrlComponent( token.getActionKey().getPublicKey().serialize() ) ) );
+		HttpPost post = new HttpPost( String.format( VALUE_URI, domain ) );
 
 		try {
-			Integer response = execute( get, new TypeToken<Integer>() {
+			post.setEntity( new StringEntity( encrypt( token, domain ) ) );
+			Integer response = execute( post, new TypeToken<Integer>() {
 			}.getType(), token );
 			return response.intValue();
 		} catch( IOException exception ) {
@@ -111,17 +109,6 @@ public class TreasuryClient implements Treasury {
 			response = decrypt( token, response );
 		}
 		return (T) gson.fromJson( response, responseType );
-	}
-
-	private String encodeUrlComponent( String component ) {
-		if( component == null || "".equals( component ) ) {
-			return "";
-		}
-		try {
-			return URLEncoder.encode( component, "UTF-8" );
-		} catch( UnsupportedEncodingException exception ) {
-		}
-		return component;
 	}
 
 	private String encrypt( Token token, String message ) throws IOException {
