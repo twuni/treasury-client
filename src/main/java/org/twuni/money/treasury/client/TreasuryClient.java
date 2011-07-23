@@ -25,24 +25,28 @@ import com.google.gson.reflect.TypeToken;
 
 public class TreasuryClient implements Treasury {
 
-	private static final String CREATE_URI = "http://%s:8080/treasury/create";
-	private static final String VALUE_URI = "http://%s:8080/treasury/value";
-	private static final String MERGE_URI = "http://%s:8080/treasury/merge";
-	private static final String SPLIT_URI = "http://%s:8080/treasury/split";
+	private static final String CREATE_URI = "/create";
+	private static final String VALUE_URI = "/value";
+	private static final String MERGE_URI = "/merge";
+	private static final String SPLIT_URI = "/split";
 
 	private final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
 
-	private final String domain;
+	private final String baseUrl;
 	private final HttpClient client;
 
-	public TreasuryClient( HttpClient client, String domain ) {
+	public TreasuryClient( HttpClient client, String baseUrl ) {
 		this.client = client;
-		this.domain = domain;
+		this.baseUrl = baseUrl;
+	}
+
+	private String getUrl( String uri ) {
+		return String.format( "%s%s", baseUrl, uri );
 	}
 
 	@Override
 	public Token create( int amount ) {
-		HttpPost post = new HttpPost( String.format( CREATE_URI, domain ) );
+		HttpPost post = new HttpPost( getUrl( CREATE_URI ) );
 		try {
 			post.setEntity( new StringEntity( Integer.toString( amount ) ) );
 			ShareableToken token = execute( post, new TypeToken<ShareableToken>() {
@@ -56,7 +60,7 @@ public class TreasuryClient implements Treasury {
 	@Override
 	public Set<Token> split( Token token, int amount ) {
 
-		HttpPost post = new HttpPost( String.format( SPLIT_URI, domain ) );
+		HttpPost post = new HttpPost( getUrl( SPLIT_URI ) );
 
 		try {
 			post.setEntity( new StringEntity( encrypt( token, Integer.toString( amount ) ) ) );
@@ -72,7 +76,7 @@ public class TreasuryClient implements Treasury {
 	@Override
 	public Token merge( Token a, Token b ) {
 
-		HttpPost post = new HttpPost( String.format( MERGE_URI, domain ) );
+		HttpPost post = new HttpPost( getUrl( MERGE_URI ) );
 
 		try {
 			post.setEntity( new StringEntity( encrypt( a, encrypt( b, a.getActionKey().getPublicKey().serialize() ) ) ) );
@@ -88,10 +92,10 @@ public class TreasuryClient implements Treasury {
 	@Override
 	public int getValue( Token token ) {
 
-		HttpPost post = new HttpPost( String.format( VALUE_URI, domain ) );
+		HttpPost post = new HttpPost( getUrl( VALUE_URI ) );
 
 		try {
-			post.setEntity( new StringEntity( encrypt( token, domain ) ) );
+			post.setEntity( new StringEntity( encrypt( token, baseUrl ) ) );
 			Integer response = execute( post, new TypeToken<Integer>() {
 			}.getType(), token );
 			return response.intValue();
@@ -151,14 +155,14 @@ public class TreasuryClient implements Treasury {
 		}
 		if( object instanceof TreasuryClient ) {
 			TreasuryClient treasury = (TreasuryClient) object;
-			return domain.equals( treasury.domain );
+			return baseUrl.equals( treasury.baseUrl );
 		}
 		return super.equals( object );
 	}
 
 	@Override
 	public String toString() {
-		return domain;
+		return baseUrl;
 	}
 
 }
