@@ -101,6 +101,8 @@ public class TreasuryClient implements Treasury {
 			return response.intValue();
 		} catch( IOException exception ) {
 			throw new NetworkException( exception );
+		} catch( Exception exception ) {
+			return 0;
 		}
 
 	}
