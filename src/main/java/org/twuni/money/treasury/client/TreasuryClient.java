@@ -25,6 +25,7 @@ import com.google.gson.reflect.TypeToken;
 
 public class TreasuryClient implements Treasury {
 
+	private static final String REFRESH_URI = "/refresh";
 	private static final String CREATE_URI = "/create";
 	private static final String VALUE_URI = "/value";
 	private static final String MERGE_URI = "/merge";
@@ -42,6 +43,19 @@ public class TreasuryClient implements Treasury {
 
 	private String getUrl( String uri ) {
 		return String.format( "%s%s", baseUrl, uri );
+	}
+
+	@Override
+	public Token refresh( Token token ) {
+		HttpPost post = new HttpPost( getUrl( REFRESH_URI ) );
+		try {
+			post.setEntity( new StringEntity( encrypt( token, Integer.toString( token.getValue() ) ) ) );
+			ShareableToken result = execute( post, new TypeToken<ShareableToken>() {
+			}.getType() );
+			return adapt( result );
+		} catch( IOException exception ) {
+			throw new NetworkException( exception );
+		}
 	}
 
 	@Override
